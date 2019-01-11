@@ -260,12 +260,7 @@ main{
     /* pop ups */
 
     .map__hexPopup>.mapboxgl-popup-content{
-        opacity: .85;
-        border: 2px solid;
         padding: 7.5px;
-        border-radius: 10px;
-    }
-    .map__hexPopup>.mapboxgl-popup-content>p{
         font-weight: 700;
     }
     .map__stationPopup{

@@ -357,22 +357,17 @@ form.onsubmit = e => {
                             'right': [0,0]
                             }
                         
-                        const popup = new mapboxgl.Popup({ offset: offsets, className: 'map__hexPopup' })
+                        const popup = new mapboxgl.Popup({ offset: offsets, className: "map__hexPopup" })
                         let colors = schemes[stationInfo.operator][stationInfo.mode]
+                        let content = count > 1 ? `${count} Commuters from this area.` : '1 Commuter from this area'
                         popup.setLngLat(e.lngLat)
-                            .setHTML(`<p style="color: ${colors[colors.length-1]}">${count} Commuters attributed to this area.</p>`)
+                            .setHTML(`<p style="color: ${colors[colors.length-1]}">${content}</p>`)
                             .addTo(map)
                         document.querySelector('.mapboxgl-popup-close-button').addEventListener('click', e=>{
                             if (map.getLayer('hexClick')){
                                 map.removeLayer('hexClick')
                             }
                         })
-                        for (let node of document.querySelectorAll('.mapboxgl-popup-tip')){
-                            node.style.borderTopColor = colors[0]
-                        }
-                        for (let node of document.querySelectorAll('.mapboxgl-popup-content')){
-                            node.style.borderColor = colors[1]
-                        }
 
                         map.addLayer({
                             'id': 'hexClick',
