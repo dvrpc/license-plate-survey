@@ -238,25 +238,27 @@ const HexStyling = (infoArray, colorScheme, filter) => {
     // create legend boxes
     let i = 0;
     colorScheme[content.operator][content.mode].forEach(classification => {
-      const container = document.querySelector(".legend__distribution-summary"),
-        legendItem = document.createElement("div"),
-        height = document.querySelector("body").clientHeight * 0.045,
-        breakValue = content.breaks[i]["break"][1];
-      legendItem.style.cssText =
-        i < 2
-          ? `width: ${height}px; height: ${height}px; background-color: ${classification};`
-          : `width: ${height}px; height: ${height}px; background-color: ${classification}; color: white;`;
-      
-        if (i == 0){
-            legendItem.innerHTML = `<p>0 – ${breakValue}</p>`
-            container.appendChild(legendItem);
+        if (content.breaks[i]){
+            const container = document.querySelector(".legend__distribution-summary"),
+              legendItem = document.createElement("div"),
+              height = document.querySelector("body").clientHeight * 0.045,
+              breakValue = content.breaks[i]["break"][1];
+            legendItem.style.cssText =
+              i < 2
+                ? `width: ${height}px; height: ${height}px; background-color: ${classification};`
+                : `width: ${height}px; height: ${height}px; background-color: ${classification}; color: white;`;
+            
+              if (i == 0){
+                  legendItem.innerHTML = `<p>0 – ${breakValue}</p>`
+                  container.appendChild(legendItem);
+              }
+              else{
+                  let range = (breakValue - (content.breaks[i-1]["break"][1]+1)) > 1 ? `<p>${content.breaks[i-1]["break"][1]+1} – ${breakValue}</p>` : `<p>${breakValue}</p>`
+                  legendItem.innerHTML = range;
+                  container.appendChild(legendItem);
+              }
+            i++;
         }
-        else if (content.breaks[i]){
-            let range = (breakValue - (content.breaks[i-1]["break"][1]+1)) > 1 ? `<p>${content.breaks[i-1]["break"][1]+1} – ${breakValue}</p>` : `<p>${breakValue}</p>`
-            legendItem.innerHTML = range;
-            container.appendChild(legendItem);
-        }
-      i++;
     });
   };
   const GenerateFillFunction = (infoArray, colorScheme) => {
@@ -308,64 +310,7 @@ const HexStyling = (infoArray, colorScheme, filter) => {
     }
   };
 };
-
-// function to get station sheds hexagons on submit
-const form = document.querySelector("#main-form");
-let data = new Object();
-// populate dropdowns with possible query values
-fetch("https://a.michaelruane.com/api/lps/test")
-  .then(response =>
-    response.ok
-      ? response.json()
-      : console.error("Failed to fetch surveyed stations")
-  )
-  .then(jawn => {
-    // listener to populate year dropdown with valid values based on db on station change
-    form[0].addEventListener("change", e => {
-      // remove any artifacts
-      while (form[1].firstChild) {
-        form[1].removeChild(form[1].firstChild);
-      }
-      // grab station data
-      let station = data[e.target.value];
-      // loop through response, grab the years that are associated with the new station value and create an appropriate amount of dropdown options
-      station.years.sort((a, b) => b - a);
-      station.years.forEach(year => {
-        let option = document.createElement("option");
-        option.value = year;
-        option.innerText = year;
-        form[1].appendChild(option);
-      });
-      if (station.id != null)
-        map.setFilter("railStations-highlight", [
-          "==",
-          "SURVEY_ID",
-          station.id
-        ]);
-      else {
-        map.setFilter("railStations-highlight", ["==", "SURVEY_ID", ""]);
-      }
-    });
-
-    // loop through stations and create a dropdown option for each one
-    jawn.cargo.forEach(station => {
-      if (!data[station.id]) {
-        let option = document.createElement("option");
-        option.value = station.id;
-        if (station.line == "Speedline")
-          option.innerHTML = `${station.name} (PATCO)`;
-        else if (station.line != "None")
-          option.innerHTML = `${station.name} (${station.line})`;
-        else option.innerHTML = `${station.name} (Park and Ride)`;
-        form[0].appendChild(option);
-        data[station.id] = station;
-      }
-    });
-    return data;
-  });
-
-form.onsubmit = e => {
-  e.preventDefault();
+const PerformQuery = (stationID, year) => {
   // check if a layer exists on the map already & remove it
   if (map.getLayer("hexBins")) {
     map.removeLayer("hexBins");
@@ -378,17 +323,15 @@ form.onsubmit = e => {
     let popup = document.querySelector(".map__hexPopup");
     popup.parentNode.removeChild(popup);
   }
-  let station = e.target[0].value,
-    selectedYear = e.target[1].value;
 
   // info to pass to HexStyling function (L212) to apply appropriate color scheme to results
   let stationInfo = {
-    name: data[station].name,
-    operator: data[station].operator,
-    mode: data[station].mode,
-    year: selectedYear,
-    id: data[station].id,
-    line: data[station].line,
+    name: data[stationID].name,
+    operator: data[stationID].operator,
+    mode: data[stationID].mode,
+    year: year,
+    id: data[stationID].id,
+    line: data[stationID].line,
     data: [],
     breaks: []
   };
@@ -397,11 +340,9 @@ form.onsubmit = e => {
     ? (stationInfo.mode = "Commuter Rail")
     : null;
 
-  if (station != "default") {
+  if (stationID != "default") {
     fetch(
-      `https://a.michaelruane.com/api/lps/query?station=${
-        stationInfo.id
-      }&year=${selectedYear}`
+      `https://a.michaelruane.com/api/lps/query?station=${stationID}&year=${year}`
     )
       .then(response => {
         if (response.status == 200) {
@@ -424,6 +365,8 @@ form.onsubmit = e => {
         if (map.getSource("hexBins")) {
           let style = HexStyling(stationInfo, schemes, hex_values);
           map.addLayer(style, "railHighlight");
+          map.on('mouseover', 'hexBins', e=> map.getCanvas().style.cursor = 'pointer')
+          map.on('mouseleave', 'hexBins', e=> map.getCanvas().style.cursor = '' )
           map.on("click", e => {
             if (map.getLayer("hexClick")) {
               map.removeLayer("hexClick");
@@ -496,7 +439,7 @@ form.onsubmit = e => {
           : null;
         let extent = map.querySourceFeatures("railStations", {
           sourceLayer: "railStations-highlight",
-          filter: ["==", "SURVEY_ID", data[station].id]
+          filter: ["==", "SURVEY_ID", stationID]
         });
         if (extent.length > 0)
           map.flyTo({
@@ -599,10 +542,91 @@ const StationPopup = event => {
     .addTo(map);
   return popup;
 };
+
+// function to get station sheds hexagons on submit
+const form = document.querySelector("#main-form");
+form.onsubmit = e =>{
+    e.preventDefault()
+    let station = form[0].value,
+        year = form[1].value
+    PerformQuery(station, year)
+}
+let data = new Object();
+// populate dropdowns with possible query values
+fetch("https://a.michaelruane.com/api/lps/test")
+  .then(response =>
+    response.ok
+      ? response.json()
+      : console.error("Failed to fetch surveyed stations")
+  )
+  .then(jawn => {
+    // listener to populate year dropdown with valid values based on db on station change
+    form[0].addEventListener("change", e => {
+        console.log('changed')
+      // remove any artifacts
+      while (form[1].firstChild) {
+        form[1].removeChild(form[1].firstChild);
+      }
+      // grab station data
+      let station = data[e.target.value];
+      // loop through response, grab the years that are associated with the new station value and create an appropriate amount of dropdown options
+      station.years.sort((a, b) => b - a);
+      station.years.forEach(year => {
+        let option = document.createElement("option");
+        option.value = year;
+        option.innerText = year;
+        form[1].appendChild(option);
+      });
+      if (station.id != null)
+        map.setFilter("railStations-highlight", [
+          "==",
+          "SURVEY_ID",
+          station.id
+        ]);
+      else {
+        map.setFilter("railStations-highlight", ["==", "SURVEY_ID", ""]);
+      }
+    });
+
+    // loop through stations and create a dropdown option for each one
+    jawn.cargo.forEach(station => {
+      if (!data[station.id]) {
+        let option = document.createElement("option");
+        option.value = station.id;
+        if (station.line == "Speedline")
+          option.innerHTML = `${station.name} (PATCO)`;
+        else if (station.line != "None")
+          option.innerHTML = `${station.name} (${station.line})`;
+        else option.innerHTML = `${station.name} (Park and Ride)`;
+        form[0].appendChild(option);
+        data[station.id] = station;
+      }
+    });
+    return data;
+  });
+
 let stationPopup;
 
+map.on('click', 'railStations-base', e=>{
+    let props = e.features[0].properties
+    if (props.SURVEY_ID > 0){
+        // update station dropdown
+        let form = document.querySelector('form')
+        form[0].value = props.SURVEY_ID
+
+        // populate year option
+        form[1].innerHTML = ''
+        let yearOption = document.createElement('option'),
+            year = data[props.SURVEY_ID].years[0]
+        yearOption.value = year
+        yearOption.innerText = year
+        form[1].appendChild(yearOption) 
+        PerformQuery(props.SURVEY_ID, year)
+    }
+
+})
 map.on("mouseover", "railStations-base", e => {
-  map.getCanvas().style.cursor = "pointer";
+    if (e.features[0].properties.SURVEY_ID > 0) map.getCanvas().style.cursor = "pointer";
   map.setFilter("railStations-hover", [
     "==",
     "OBJECTID",
