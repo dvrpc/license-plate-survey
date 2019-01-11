@@ -274,7 +274,9 @@ fetch('https://a.michaelruane.com/api/lps/test')
             if (!data[station.id]){
                 let option = document.createElement('option')
                 option.value = station.id
-                station.line != 'None' ? option.innerHTML = `${station.name} (${station.line})` : option.innerHTML =   `${station.name} (Park and Ride)`
+                if (station.line == 'Speedline') option.innerHTML = `${station.name} (PATCO)`
+                else if (station.line != 'None') option.innerHTML = `${station.name} (${station.line})`
+                else option.innerHTML =   `${station.name} (Park and Ride)` 
                 form[0].appendChild(option)
                 data[station.id] = station
             }
@@ -402,25 +404,54 @@ const StationPopup = event =>{
     if (data[event.features[0].properties.SURVEY_ID]){
         let stationData = data[event.features[0].properties.SURVEY_ID]
         let colorScheme = schemes[stationData.operator][stationData.mode]
-        content = `
-        <p class="map__stationPopup_stationInfo" style="color: ${colorScheme[colorScheme.length-1]}">${stationData.name}</p>
-        <p class="map__stationPopup_lineInfo" style="color: ${colorScheme[colorScheme.length-2]}">${stationData.operator}
-        `
-        stationData.line != 'None' ? content = content+` ${stationData.line}</p>` : content = content+' Operated</p>'
+        if (stationData.line == 'None'){
+            content = `
+            <p class="map__stationPopup_stationInfo" style="color: ${colorScheme[colorScheme.length-1]}">${stationData.name}</p>
+            <p class="map__stationPopup_lineInfo" style="color: ${colorScheme[colorScheme.length-2]}">${stationData.operator} Operated</p>
+            `
+        }
+        else if (stationData.line == 'PATCO'){
+            content = `
+            <p class="map__stationPopup_stationInfo" style="color: ${colorScheme[colorScheme.length-1]}">${stationData.name}</p>
+            <p class="map__stationPopup_lineInfo" style="color: ${colorScheme[colorScheme.length-2]}">PATCO Speedline</p>
+            `
+        }
+        else{
+            content = `
+            <p class="map__stationPopup_stationInfo" style="color: ${colorScheme[colorScheme.length-1]}">${stationData.name}</p>
+            <p class="map__stationPopup_lineInfo" style="color: ${colorScheme[colorScheme.length-2]}">${stationData.operator} ${stationData.line}</p>
+            `
+        }
+
         let surveyInfo = '<ul class="map__stationPopup_text">Years Surveyed'
         stationData.years.sort((a,b)=> b - a)
         stationData.years.map(year=>{
             surveyInfo = surveyInfo+`<li>${year}</li>`
         })
         content = content+surveyInfo+'</ul>'
-        // if (props.LINE === 'n/a') content = `<p class="map__stationPopup_stationInfo">${props.STATION} </p><p class="map__stationPopup_lineInfo">${props.OPERATOR} Park and Ride</p>` 
-        // else content = `<p class="map__stationPopup_stationInfo">${props.STATION} Station</p><p class="map__stationPopup_lineInfo">${props.OPERATOR} ${props.LINE}</p>`
     }
     else{
-        content = `
-        <p class="map__stationPopup_stationInfo">${event.features[0].properties.STATION}</p>
-        <p class="map__stationPopup_text">This station has not been surveyed<br>in DVRPC's License Plate Survey program.</p>
-        `
+        let props = event.features[0].properties
+        if (props.LINE == 'null'){
+            content = `
+            <p class="map__stationPopup_stationInfo">${props.STATION}</p>
+            <p class="map__stationPopup_text">This station has not been surveyed<br>in DVRPC's License Plate Survey program.</p>
+            `
+        }
+        else if (props.LINE == 'PATCO'){
+            content = `
+            <p class="map__stationPopup_stationInfo">${props.STATION}</p>
+            <p class="map__stationPopup_lineInfo">${props.OPERATOR} Speedline</p>
+            <p class="map__stationPopup_text">This station has not been surveyed<br>in DVRPC's License Plate Survey program.</p>
+            `
+        }
+        else{
+            content = `
+            <p class="map__stationPopup_stationInfo">${props.STATION}</p>
+            <p class="map__stationPopup_lineInfo">${props.OPERATOR} ${props.LINE}</p>
+            <p class="map__stationPopup_text">This station has not been surveyed<br>in DVRPC's License Plate Survey program.</p>
+            `
+        }
     }
     let popup = new mapboxgl.Popup({
         offset: {
@@ -441,14 +472,15 @@ const StationPopup = event =>{
     return popup
 }
 let stationPopup;
+
 map.on('mouseover', 'railStations-base', e=>{
     map.getCanvas().style.cursor = 'pointer'
-    map.setFilter('railStations-hover', ['==', 'FID', e.features[0].properties.FID])
+    map.setFilter('railStations-hover', ['==', 'OBJECTID', e.features[0].properties.OBJECTID])
     stationPopup = StationPopup(e)
 })
 map.on('mouseleave', 'railStations-base', e=>{
     map.getCanvas().style.cursor = ''
-    map.setFilter('railStations-hover', ['==', 'FID', ''])
+    map.setFilter('railStations-hover', ['==', 'OBJECTID', ''])
     stationPopup.remove()
 })
 
