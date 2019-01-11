@@ -326,9 +326,6 @@ input[type="submit"]:hover{
 
 /* @TODO: Media Queries*/
 @media all and (max-width: 950px) {
-    /* #license-plate-logo{
-        width: 10%;
-    } */
     #more-info{
         left: 11%;
     }
