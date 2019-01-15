@@ -241,19 +241,19 @@ const HexStyling = (infoArray, colorScheme, filter) => {
         if (content.breaks[i]){
             const container = document.querySelector(".legend__distribution-summary"),
               legendItem = document.createElement("div"),
-              height = document.querySelector("body").clientHeight * 0.045,
+              height = 100/content.breaks.length,
               breakValue = content.breaks[i]["break"][1];
             legendItem.style.cssText =
               i < 2
-                ? `width: ${height}px; height: ${height}px; background-color: ${classification};`
-                : `width: ${height}px; height: ${height}px; background-color: ${classification}; color: white;`;
+                ? `width: ${height}%; background-color: ${classification};`
+                : `width: ${height}%; background-color: ${classification}; color: white;`;
             
               if (i == 0){
-                  legendItem.innerHTML = `<p>0 – ${breakValue}</p>`
+                  legendItem.innerHTML = breakValue == 1 ? `<p>${breakValue}</p>` : `<p>1 – ${breakValue}</p>`
                   container.appendChild(legendItem);
               }
               else{
-                  let range = (breakValue - (content.breaks[i-1]["break"][1]+1)) > 1 ? `<p>${content.breaks[i-1]["break"][1]+1} – ${breakValue}</p>` : `<p>${breakValue}</p>`
+                  let range = (breakValue - (content.breaks[i-1]["break"][1])) > 1 ? `<p>${content.breaks[i-1]["break"][1]+1} – ${breakValue}</p>` : `<p>${breakValue}</p>`
                   legendItem.innerHTML = range;
                   container.appendChild(legendItem);
               }
@@ -323,6 +323,7 @@ const PerformQuery = (stationID, year) => {
     let popup = document.querySelector(".map__hexPopup");
     popup.parentNode.removeChild(popup);
   }
+  if (stationID) map.setFilter('railStations-highlight', ['==', 'SURVEY_ID', stationID])
 
   // info to pass to HexStyling function (L212) to apply appropriate color scheme to results
   let stationInfo = {
@@ -562,7 +563,6 @@ fetch("https://a.michaelruane.com/api/lps/test")
   .then(jawn => {
     // listener to populate year dropdown with valid values based on db on station change
     form[0].addEventListener("change", e => {
-        console.log('changed')
       // remove any artifacts
       while (form[1].firstChild) {
         form[1].removeChild(form[1].firstChild);
@@ -577,15 +577,6 @@ fetch("https://a.michaelruane.com/api/lps/test")
         option.innerText = year;
         form[1].appendChild(option);
       });
-      if (station.id != null)
-        map.setFilter("railStations-highlight", [
-          "==",
-          "SURVEY_ID",
-          station.id
-        ]);
-      else {
-        map.setFilter("railStations-highlight", ["==", "SURVEY_ID", ""]);
-      }
     });
 
     // loop through stations and create a dropdown option for each one
@@ -610,18 +601,18 @@ let stationPopup;
 map.on('click', 'railStations-base', e=>{
     let props = e.features[0].properties
     if (props.SURVEY_ID > 0){
-        // update station dropdown
-        let form = document.querySelector('form')
-        form[0].value = props.SURVEY_ID
+      // perform query
+      let station = props.SURVEY_ID,
+      year = data[props.SURVEY_ID].years[0]
+      PerformQuery(station, year)
 
-        // populate year option
-        form[1].innerHTML = ''
-        let yearOption = document.createElement('option'),
-            year = data[props.SURVEY_ID].years[0]
-        yearOption.value = year
-        yearOption.innerText = year
-        form[1].appendChild(yearOption) 
-        PerformQuery(props.SURVEY_ID, year)
+      // populate form
+      let form = document.querySelector('#main-form')
+      form[0].value = station
+      form[1].value = year
+      form[1].innerHTML = `<option>${year}</option>`
+
+
     }
 
 })
