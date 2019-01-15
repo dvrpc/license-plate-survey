@@ -323,7 +323,6 @@ const PerformQuery = (stationID, year) => {
     let popup = document.querySelector(".map__hexPopup");
     popup.parentNode.removeChild(popup);
   }
-  if (stationID) map.setFilter('railStations-highlight', ['==', 'SURVEY_ID', stationID])
 
   // info to pass to HexStyling function (L212) to apply appropriate color scheme to results
   let stationInfo = {
@@ -440,87 +439,115 @@ const PerformQuery = (stationID, year) => {
           : null;
         let extent = map.querySourceFeatures("railStations", {
           sourceLayer: "railStations-highlight",
-          filter: ["==", "SURVEY_ID", stationID]
+          filter: ["==", ['get', "SURVEY_ID"], stationInfo.id]
         });
-        if (extent.length > 0)
-          map.flyTo({
-            center: extent[0].geometry.coordinates,
-            zoom: 10,
-            speed: 0.3
-          });
-        else
-          map.flyTo({
-            center: baseExtent.center,
-            zoom: baseExtent.zoom,
-            speed: 0.3
-          });
+        map.flyTo({
+          center: extent[0].geometry.coordinates,
+          zoom: 10,
+          speed: 0.3
+        });
       });
   } else {
     alert("Please select a station to continue");
   }
 };
 const StationPopup = event => {
+  const SurveyedPopup = (props, colors, event) =>{
+    const Name = data =>{
+      let title = document.createElement('p')
+      title.classList.add('map__stationPopup-stationInfo')
+      title.style.color = colors[colors.length-1]
+      title.innerText = data.name
+
+      return title    
+    }
+    const LineInfo = props => {
+      console.log(props)
+      let line = document.createElement('p'),
+        colorScheme = props.OPERATOR == 'PATCO' ? schemes.DRPA['Rapid Transit'] : schemes[props.OPERATOR][props.TYPE]
+      line.classList.add('map__stationPopup-lineInfo')
+      line.style.color = colorScheme[colorScheme.length-2]
+      switch(props.LINE){
+        case 'null':
+          line.innerText = `${props.OPERATOR} Operated`
+          break;
+        case 'PATCO':
+          line.innerText = 'PATCO Speedline'
+          break;
+        case 'SEPTA Main Line':
+          line.innerText = props.LINE
+          break;
+        default:
+          line.innerText = `${props.OPERATOR} ${props.LINE}`
+          break;
+      }
+      return line
+    }
+    const SurveyInfo = data =>{
+      let container = document.createElement('ul')
+      container.classList.add('map__stationPopup-text')
+      container.innerText = 'Years Surveyed'
+      data.years.sort((a,b)=> b - a)
+      data.years.map(year=> {
+        let list = document.createElement('li')
+        list.innerText = year
+        container.appendChild(list)
+      })
+
+      return container
+    }
+    
+    let stationData = data[props.SURVEY_ID],
+      content = document.createElement('div'),
+      title = Name(stationData),
+      survey = SurveyInfo(stationData)
+
+    content.appendChild(title)
+    event.features.map(station=>{
+      let line = LineInfo(station.properties)
+      content.appendChild(line)
+    })
+    content.appendChild(survey)
+    return content.innerHTML
+
+  }
   let content;
   if (data[event.features[0].properties.SURVEY_ID]) {
     let stationData = data[event.features[0].properties.SURVEY_ID];
     let colorScheme = schemes[stationData.operator][stationData.mode];
-    if (stationData.line == "None") {
-      content = `
-            <p class="map__stationPopup_stationInfo" style="color: ${
-              colorScheme[colorScheme.length - 1]
-            }">${stationData.name}</p>
-            <p class="map__stationPopup_lineInfo" style="color: ${
-              colorScheme[colorScheme.length - 2]
-            }">${stationData.operator} Operated</p>
-            `;
-    } else if (stationData.line == "PATCO") {
-      content = `
-            <p class="map__stationPopup_stationInfo" style="color: ${
-              colorScheme[colorScheme.length - 1]
-            }">${stationData.name}</p>
-            <p class="map__stationPopup_lineInfo" style="color: ${
-              colorScheme[colorScheme.length - 2]
-            }">PATCO Speedline</p>
-            `;
-    } else {
-      content = `
-            <p class="map__stationPopup_stationInfo" style="color: ${
-              colorScheme[colorScheme.length - 1]
-            }">${stationData.name}</p>
-            <p class="map__stationPopup_lineInfo" style="color: ${
-              colorScheme[colorScheme.length - 2]
-            }">${stationData.operator} ${stationData.line}</p>
-            `;
-    }
-
-    let surveyInfo = '<ul class="map__stationPopup_text">Years Surveyed';
-    stationData.years.sort((a, b) => b - a);
-    stationData.years.map(year => {
-      surveyInfo = surveyInfo + `<li>${year}</li>`;
-    });
-    content = content + surveyInfo + "</ul>";
+    content = SurveyedPopup(event.features[0].properties, colorScheme, event)
   } else {
     let props = event.features[0].properties;
     if (props.LINE == "null") {
       content = `
-            <p class="map__stationPopup_stationInfo">${props.STATION}</p>
-            <p class="map__stationPopup_text">This station has not been surveyed<br>in DVRPC's License Plate Survey program.</p>
+            <p class="map__stationPopup-stationInfo">${props.STATION}</p>
+            <p class="map__stationPopup-text">This station has not been surveyed<br>in DVRPC's License Plate Survey program.</p>
             `;
     } else if (props.LINE == "PATCO") {
       content = `
-            <p class="map__stationPopup_stationInfo">${props.STATION}</p>
-            <p class="map__stationPopup_lineInfo">${
+            <p class="map__stationPopup-stationInfo">${props.STATION}</p>
+            <p class="map__stationPopup-lineInfo">${
               props.OPERATOR
             } Speedline</p>
-            <p class="map__stationPopup_text">This station has not been surveyed<br>in DVRPC's License Plate Survey program.</p>
+            <p class="map__stationPopup-text">This station has not been surveyed<br>in DVRPC's License Plate Survey program.</p>
             `;
-    } else {
+    } 
+    else if (props.LINE == 'SEPTA Main Line'){
       content = `
-            <p class="map__stationPopup_stationInfo">${props.STATION}</p>
-            <p class="map__stationPopup_lineInfo">${props.OPERATOR} ${
+            <p class="map__stationPopup-stationInfo">${props.STATION}</p>
+            <p class="map__stationPopup-lineInfo">${
         props.LINE
       }</p>
-            <p class="map__stationPopup_text">This station has not been surveyed<br>in DVRPC's License Plate Survey program.</p>
+            <p class="map__stationPopup-text">This station has not been surveyed<br>in DVRPC's License Plate Survey program.</p>
+            `;
+    }
+    else {
+      content = `
+            <p class="map__stationPopup-stationInfo">${props.STATION}</p>
+            <p class="map__stationPopup-lineInfo">${props.OPERATOR} ${
+        props.LINE
+      }</p>
+            <p class="map__stationPopup-text">This station has not been surveyed<br>in DVRPC's License Plate Survey program.</p>
             `;
     }
   }
@@ -577,7 +604,8 @@ fetch("https://a.michaelruane.com/api/lps/test")
         option.innerText = year;
         form[1].appendChild(option);
       });
-    });
+      map.setFilter('railStations-highlight', ['==', ['get', 'SURVEY_ID'], station.id])
+  });
 
     // loop through stations and create a dropdown option for each one
     jawn.cargo.forEach(station => {
@@ -601,6 +629,7 @@ let stationPopup;
 map.on('click', 'railStations-base', e=>{
     let props = e.features[0].properties
     if (props.SURVEY_ID > 0){
+      map.setFilter('railStations-highlight', ['==', ['get', 'SURVEY_ID'], props.SURVEY_ID])
       // perform query
       let station = props.SURVEY_ID,
       year = data[props.SURVEY_ID].years[0]
@@ -611,8 +640,6 @@ map.on('click', 'railStations-base', e=>{
       form[0].value = station
       form[1].value = year
       form[1].innerHTML = `<option>${year}</option>`
-
-
     }
 
 })
