@@ -782,6 +782,7 @@ window.onclick = event => {
 };
 
 document.onkeydown = e => {
+  e.target.classList.contains('modal-link') ? console.log('ya') : console.log('na')
   if (modal.classList.contains("visible")) {
     if (e.key === "Escape") AriaHide(modal);
   } else if (e.target.id === moreInfo.id) {
@@ -790,5 +791,16 @@ document.onkeydown = e => {
     e.key === "Enter" && toggle.nextElementSibling.classList.contains("visible")
       ? AriaHide(toggle.nextElementSibling)
       : AriaShow(toggle.nextElementSibling);
+  }
+  else if (e.target.classList.contains('modal-link')){
+    let tab = e.target
+    if (e.key === "Enter" && !tab.classList.contains('active')){
+      tab.classList.add('active')
+      AriaShow(document.querySelector(`#modal-${tab.textContent.toLowerCase()}`))
+    }
+    else if (e.key === "Enter" && tab.classList.contains('active')){
+      tab.classList.remove('active')
+      AriaHide(document.querySelector(`#modal-${tab.textContent.toLowerCase()}`))
+    }
   }
 };
