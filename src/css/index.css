@@ -65,8 +65,9 @@ nav{
 #modal-container{
     position: relative;
     width: 50%;
+    max-height: 50%;
     background: #f7f7f7;
-    padding: 3%;
+    padding: 2%;
     margin: auto;
     border-radius: 3px;
     text-align: left;
@@ -76,20 +77,24 @@ nav{
 }
 .modal-tabs{
     display: flex;
+    flex-flow: row wrap;
     justify-content: space-around;
+    align-items: center;
     list-style: none;
     margin: 0;
+    padding: 0;
 }
 .modal-tabs li{
     color: #5ca3cb;
-    font-size: 1.15rem;
+    font-size: 1.25rem;
+    margin: 1%;
 }
 .modal-tabs li:hover{
     cursor: pointer;
 }
 .modal-tabs li.active{
     font-weight: 700;
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     color: #155472
 }
 #modal-directions ol{
@@ -97,6 +102,12 @@ nav{
 }
 #modal-directions li{
     padding-bottom: 1%;
+    width: 90%;
+    margin: auto;
+}
+#modal-directions h4{
+    text-align: center;
+    color: #5ca3cb
 }
 #close-modal {
     position: absolute;
@@ -118,6 +129,15 @@ nav{
 }
 .modal-content.visible{
     display: block;
+}
+.modal-content p, .modal-content li {
+    font-size: .9rem;
+}
+#modal-contact{
+    text-align: center
+}
+#modal-contact h3, #modal-contact h4{
+    margin: .25%;
 }
 .nav-column{
     display: flex;
@@ -367,6 +387,15 @@ input[type="submit"]:hover{
     }
     form>p{
         display: none;
+    }
+    .modal-tabs{
+        flex-flow: column;
+    }
+    .modal-tabs li{
+        font-size: 1.15rem;
+    }
+    .modal-tabs li.active{
+        font-size: 1.25rem;
     }
 }
 @media all and (max-width: 750px) {

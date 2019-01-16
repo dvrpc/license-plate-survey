@@ -742,22 +742,7 @@ const close = document.querySelector("#close-modal");
 const modalTabs = document.querySelectorAll(".modal-tabs li")
 
 
-// modal navigation
-for (let link of modalTabs){
-  link.addEventListener('click', e=>{
-    for (let link of modalTabs){
-      let target = document.querySelector(`#modal-${link.textContent.toLowerCase()}`)
-      if (link == e.target){
-        link.classList.add('active')
-        target.classList.add('visible')
-      }
-      else {
-        link.classList.remove('active')
-        target.classList.remove('visible')
-      }
-    }
-  })
-}
+
 const AriaHide = element => {
   element.classList.remove("visible");
   element.setAttribute("aria-hidden", "true");
@@ -767,7 +752,22 @@ const AriaShow = element => {
   element.classList.add("visible");
   element.setAttribute("aria-hidden", "false");
 };
-
+// modal navigation
+for (let link of modalTabs){
+  link.addEventListener('click', e=>{
+    for (let link of modalTabs){
+      let target = document.querySelector(`#modal-${link.textContent.toLowerCase()}`)
+      if (link == e.target){
+        link.classList.add('active')
+        AriaShow(target)
+      }
+      else {
+        link.classList.remove('active')
+        AriaHide(target)
+      }
+    }
+  })
+}
 // open the modal
 moreInfo.onclick = () =>
   (modal.style.display = "none" ? AriaShow(modal) : AriaHide(modal));
