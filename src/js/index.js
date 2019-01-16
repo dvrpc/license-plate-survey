@@ -739,7 +739,25 @@ let toggle = document.querySelector(".legend__toggle");
 const moreInfo = document.querySelector("#more-info");
 const modal = document.querySelector("#modal");
 const close = document.querySelector("#close-modal");
+const modalTabs = document.querySelectorAll(".modal-tabs li")
 
+
+// modal navigation
+for (let link of modalTabs){
+  link.addEventListener('click', e=>{
+    for (let link of modalTabs){
+      let target = document.querySelector(`#modal-${link.textContent.toLowerCase()}`)
+      if (link == e.target){
+        link.classList.add('active')
+        target.classList.add('visible')
+      }
+      else {
+        link.classList.remove('active')
+        target.classList.remove('visible')
+      }
+    }
+  })
+}
 const AriaHide = element => {
   element.classList.remove("visible");
   element.setAttribute("aria-hidden", "true");

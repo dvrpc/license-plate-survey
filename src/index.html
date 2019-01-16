@@ -49,10 +49,15 @@
       <i class="fas fa-info-circle" id="more-info" tabindex="12"></i>
 
       <div id="modal">
-        <div id="modal-content">
+        <div id="modal-container">
           <span id="close-modal">&times;</span>
-          <h2>Methodology</h2>
-          <p>
+          <ul class="modal-tabs">
+            <li class="active">Methodology</li>
+            <li>Directions</li>
+            <li>Disclaimer</li>
+            <li>Contact</li>
+          </ul>
+          <p class="modal-content visible" id="modal-methodology">
             This web map shows trip origins for transit users that drive to and
             park motor vehicles at train stations or park-and-ride lots in the
             Delaware Valley Region. This map only includes train stations and
@@ -71,10 +76,7 @@
             them, but also small enough to effectively display the trends in the
             data.
           </p>
-
-          <h2>Directions</h2>
-
-          <ol>
+          <ol class="modal-content" id="modal-directions">
             <li>
               Using the Search Stations drop down, choose a station from the
               list.
@@ -92,8 +94,7 @@
               mouse or by double clicking on a location.
             </li>
           </ol>
-          <h2>Disclaimer</h2>
-          <p>
+          <p class="modal-content" id="modal-disclaimer">
             This web page is a public resource of general information. The
             Delaware Valley Regional Planning Commission (DVRPC) makes no
             warranty, representation, or guarantee as to the content, sequence,
@@ -104,6 +105,18 @@
             how caused; or any decision made or action taken or not taken by any
             person relying on any information or data furnished within.
           </p>
+          <div class="modal-content" id="modal-contact">
+            <p>
+              For questions, comments, or concerns regarding this project please use the following 
+              contact information:
+            </p>
+            <p>
+                <strong style="color: #155472">Thom Stead</strong></br>
+                <em style="color: #5ca3cb">Transportation Planner</em></br>
+                E-mail: <a href="mailto:tstead@dvrpc.org" alt='primary email contact' target="_blank" rel="noopener">tstead@dvrpc.org</a></br>
+                Phone: 215.238.2851
+            </p>
+          </div>
         </div>
       </div>
 
