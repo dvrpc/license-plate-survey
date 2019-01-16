@@ -752,21 +752,23 @@ const AriaShow = element => {
   element.classList.add("visible");
   element.setAttribute("aria-hidden", "false");
 };
+
+const ModalLinkNav = e =>{
+  for (let link of modalTabs){
+    let target = document.querySelector(`#modal-${link.textContent.toLowerCase()}`)
+    if (link == e.target){
+      link.classList.add('active')
+      AriaShow(target)
+    }
+    else {
+      link.classList.remove('active')
+      AriaHide(target)
+    }
+  }
+}
 // modal navigation
 for (let link of modalTabs){
-  link.addEventListener('click', e=>{
-    for (let link of modalTabs){
-      let target = document.querySelector(`#modal-${link.textContent.toLowerCase()}`)
-      if (link == e.target){
-        link.classList.add('active')
-        AriaShow(target)
-      }
-      else {
-        link.classList.remove('active')
-        AriaHide(target)
-      }
-    }
-  })
+  link.addEventListener('click', e=>{ ModalLinkNav(e)})
 }
 // open the modal
 moreInfo.onclick = () =>
@@ -782,7 +784,6 @@ window.onclick = event => {
 };
 
 document.onkeydown = e => {
-  e.target.classList.contains('modal-link') ? console.log('ya') : console.log('na')
   if (modal.classList.contains("visible")) {
     if (e.key === "Escape") AriaHide(modal);
   } else if (e.target.id === moreInfo.id) {
@@ -792,15 +793,5 @@ document.onkeydown = e => {
       ? AriaHide(toggle.nextElementSibling)
       : AriaShow(toggle.nextElementSibling);
   }
-  else if (e.target.classList.contains('modal-link')){
-    let tab = e.target
-    if (e.key === "Enter" && !tab.classList.contains('active')){
-      tab.classList.add('active')
-      AriaShow(document.querySelector(`#modal-${tab.textContent.toLowerCase()}`))
-    }
-    else if (e.key === "Enter" && tab.classList.contains('active')){
-      tab.classList.remove('active')
-      AriaHide(document.querySelector(`#modal-${tab.textContent.toLowerCase()}`))
-    }
-  }
+  if (e.target.classList.contains('modal-link')){ ModalLinkNav(e) }
 };
