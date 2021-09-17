@@ -380,7 +380,7 @@ const PerformQuery = (stationID, year) => {
   if (stationID != "default") {
     let popupReference = new Object();
     fetch(
-      `https://alpha.dvrpc.org/api/lps/query?station=${stationID}&year=${year}`
+      `https://cloud.dvrpc.org/api/lps/v1/hexbins?station=${stationID}&year=${year}`
     )
       .then(response => {
         if (response.status == 200) {
@@ -391,7 +391,7 @@ const PerformQuery = (stationID, year) => {
         UpdateRailFilter(stationInfo);
         // create filter array for hex tile
         let hex_values = [];
-        jawn.cargo.map(hex => {
+        jawn.map(hex => {
           hex_values.push(hex.hex_id);
           popupReference[hex.hex_id] = hex.count;
           stationInfo.data.push({
@@ -656,12 +656,14 @@ form.onsubmit = e => {
 };
 let data = new Object();
 // populate dropdowns with possible query values
-fetch("https://alpha.dvrpc.org/api/lps/test")
-  .then(response =>
-    response.ok
-      ? response.json()
-      : console.error("Failed to fetch surveyed stations")
-  )
+fetch("https://cloud.dvrpc.org/api/lps/v1/stations")
+  .then(response => {
+    if (response.status == 200) {
+      return response.json();
+    } else {
+      console.error("Failed to fetch surveyed stations");
+    }
+  }) 
   .then(jawn => {
     // listener to populate year dropdown with valid values based on db on station change
     form[0].addEventListener("change", e => {
@@ -674,7 +676,7 @@ fetch("https://alpha.dvrpc.org/api/lps/test")
     });
 
     // loop through stations and create a dropdown option for each one
-    jawn.cargo.map(station => {
+    jawn.map(station => {
       if (!data[station.id]) {
         let option = document.createElement("option");
         option.value = station.id;
