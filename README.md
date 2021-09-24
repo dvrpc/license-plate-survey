@@ -1,9 +1,5 @@
 # license-plate-survey
-Repository for DVRPC's License Plate Survey Station Shed Web Viewer
 
+Front-end code for DVRPC's [Park & Ride Passenger Origins webmap](https://www.dvrpc.org/webmaps/parkride/).
 
-## Information
-
-This is a Django Endpoint built using Python 2.7 and Django v1.11.13. This server requires the python module `psycopg2` to be installed to perform queries and necessary connection attributes to the related PostgreSQL database.
-
-
+Utilizes the [LPS API](https://github.com/dvrpc/lps-api).
