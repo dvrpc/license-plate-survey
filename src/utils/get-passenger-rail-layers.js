@@ -3,7 +3,7 @@ export const getRailLayer = (lineName, lineColor) => {
         id: 'railLayer',
         type: 'line',
         source: 'passengerRailLines',
-        // filter: ['match', ['get', 'LINE_NAME'], lineName, true, false],
+        // filter: ['match', ['get', 'line_name'], lineName, true, false],
         paint: {
         "line-color": lineColor,
         "line-width":['interpolate', ['linear'], ['zoom'], 8, 1, 12, 5],
