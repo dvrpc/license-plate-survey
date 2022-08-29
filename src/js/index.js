@@ -18,7 +18,7 @@ const schemes = {
     Subway: ["#ffdbc2", "#ffbe8e", "#fca05a", "#f58221"],
     "Subway/Elevated": ["#cae5ff", "#97c1ea", "#619fd6", "#067dc1"]
   },
-  DRPA: {
+  PATCO: {
     "Rapid Transit": ["#ffd6d5", "#ffa3a4", "#fa6c76", "#ed164b"]
   },
   Amtrak: {
@@ -109,7 +109,7 @@ const PerformQuery = (stationID, year) => {
       // workaround because this data is inconsistent and this is easier
       let thisStation = {
         name: undefined,
-        operator: props.operator == "PATCO" ? "DRPA" : props.operator,
+        operator: props.operator,
         mode: props.type
       };
       switch (props.line) {
@@ -380,7 +380,7 @@ const PerformQuery = (stationID, year) => {
   if (stationID != "default") {
     let popupReference = new Object();
     fetch(
-      `https://cloud.dvrpc.org/api/lps/v1/hexbins?station=${stationID}&year=${year}`
+      `http://127.0.0.1:8000/api/lps/v1/hexbins?station=${stationID}&year=${year}`
     )
       .then(response => {
         if (response.status == 200) {
@@ -547,7 +547,7 @@ const StationPopup = event => {
 
       return container;
     };
-    let colors = props.operator != 'PATCO' ? schemes[props.operator][props.mode] : schemes.DRPA["Rapid Transit"],
+    let colors = props.operator != 'PATCO' ? schemes[props.operator][props.mode] : schemes.PATCO["Rapid Transit"],
       content = document.createElement("div"),
       title = Name(props),
       survey = SurveyInfo(props);
@@ -656,7 +656,7 @@ form.onsubmit = e => {
 };
 let data = new Object();
 // populate dropdowns with possible query values
-fetch("https://cloud.dvrpc.org/api/lps/v1/stations")
+fetch("http://127.0.0.1:8000/api/lps/v1/stations")
   .then(response => {
     if (response.status == 200) {
       return response.json();
@@ -719,14 +719,14 @@ map.on("mouseover", "railStations-base", e => {
     map.getCanvas().style.cursor = "pointer";
   map.setFilter("railStations-hover", [
     "==",
-    "OBJECTID",
-    e.features[0].properties.OBJECTID
+    "objectid",
+    e.features[0].properties.objectid
   ]);
   stationPopup = StationPopup(e);
 });
 map.on("mouseleave", "railStations-base", e => {
   map.getCanvas().style.cursor = "";
-  map.setFilter("railStations-hover", ["==", "OBJECTID", ""]);
+  map.setFilter("railStations-hover", ["==", "objectid", ""]);
   stationPopup.remove();
 });
 
