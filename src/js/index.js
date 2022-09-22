@@ -380,7 +380,7 @@ const PerformQuery = (stationID, year) => {
   if (stationID != "default") {
     let popupReference = new Object();
     fetch(
-      `https://cloud.dvrpc.org/api/lps/v1/hexbins?station=${stationID}&year=${year}`
+      `https://cloud.dvrpc.org/api/lps/v2/hexbins?station=${stationID}&year=${year}`
     )
       .then(response => {
         if (response.status == 200) {
@@ -656,7 +656,7 @@ form.onsubmit = e => {
 };
 let data = new Object();
 // populate dropdowns with possible query values
-fetch("https://cloud.dvrpc.org/api/lps/v1/stations")
+fetch("https://cloud.dvrpc.org/api/lps/v2/stations")
   .then(response => {
     if (response.status == 200) {
       return response.json();
