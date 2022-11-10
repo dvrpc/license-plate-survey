@@ -18,7 +18,7 @@ const schemes = {
     Subway: ["#ffdbc2", "#ffbe8e", "#fca05a", "#f58221"],
     "Subway/Elevated": ["#cae5ff", "#97c1ea", "#619fd6", "#067dc1"]
   },
-  DRPA: {
+  PATCO: {
     "Rapid Transit": ["#ffd6d5", "#ffa3a4", "#fa6c76", "#ed164b"]
   },
   Amtrak: {
@@ -56,7 +56,7 @@ map.on("load", e => {
   CreateDvrpcNavControl(baseExtent, map)
 
   fetch(
-    "https://services1.arcgis.com/LWtWv6q6BJyKidj8/arcgis/rest/services/DVRPC_LPS/FeatureServer/1/query?where=1%3D1&outFields=OBJECTID%2C+GRID_ID&outSR=4326&geometryPrecision=4&f=geojson"
+    "https://arcgis.dvrpc.org/portal/rest/services/Transportation/parkandride_hexbins/FeatureServer/0/query?where=1=1&outFields=objectid%2C+grid_id&outSR=4326&f=geojson"
   ).then(response => {
     if (response.ok) {
       response
@@ -100,7 +100,7 @@ const PerformQuery = (stationID, year) => {
     // get all rail lines associated with given station
     let stationQuery = map.querySourceFeatures("railStations", {
       sourceLayer: "railStations-base",
-      filter: ["==", ["get", "SURVEY_ID"], stationData.id]
+      filter: ["==", ["get", "station_id"], stationData.id]
     });
 
     // add all rail lines to stationInfo
@@ -109,10 +109,10 @@ const PerformQuery = (stationID, year) => {
       // workaround because this data is inconsistent and this is easier
       let thisStation = {
         name: undefined,
-        operator: props.OPERATOR == "PATCO" ? "DRPA" : props.OPERATOR,
-        mode: props.TYPE
+        operator: props.operator,
+        mode: props.type
       };
-      switch (props.LINE) {
+      switch (props.line) {
         case "Atlantic City Line":
           if (
             stationData.line.ref.indexOf("NJ Transit Atlantic City Line") == -1
@@ -151,9 +151,9 @@ const PerformQuery = (stationID, year) => {
           }
           break;
         default:
-          if (stationData.line.ref.indexOf(props.LINE) == -1) {
-            stationData.line.ref.push(props.LINE);
-            thisStation.name = props.LINE;
+          if (stationData.line.ref.indexOf(props.line) == -1) {
+            stationData.line.ref.push(props.line);
+            thisStation.name = props.line;
             stationData.line.info.push(thisStation);
           }
           break;
@@ -162,7 +162,7 @@ const PerformQuery = (stationID, year) => {
     // build filter and apply
     let filterExp = ["any"];
     stationInfo.line.info.map(line => {
-      let filterStatement = ["==", ["get", "LINE_NAME"], line.name];
+      let filterStatement = ["==", ["get", "line_name"], line.name];
       filterExp.push(filterStatement);
     });
     map.setFilter("railHighlight", filterExp);
@@ -308,7 +308,7 @@ const PerformQuery = (stationID, year) => {
     };
     const GenerateFillFunction = (infoArray, colorScheme) => {
       let info = {
-        query: `GRID_ID%20IN%20(`,
+        query: `grid_id%20IN%20(`,
         stops: []
       };
       Object.keys(infoArray.breaks).map(key => {
@@ -331,7 +331,7 @@ const PerformQuery = (stationID, year) => {
     const GenerateFilterFunction = values => {
       let filter = ["any"];
       values.map(v => {
-        filter.push(["==", ["get", "OBJECTID"], v]);
+        filter.push(["==", ["get", "objectid"], v]);
       });
       return filter;
     };
@@ -345,7 +345,7 @@ const PerformQuery = (stationID, year) => {
       filter: GenerateFilterFunction(filter),
       paint: {
         "fill-color": {
-          property: "OBJECTID",
+          property: "objectid",
           type: "categorical",
           default: "#ccc",
           stops: GenerateFillFunction(infoArray, colorScheme)
@@ -380,7 +380,7 @@ const PerformQuery = (stationID, year) => {
   if (stationID != "default") {
     let popupReference = new Object();
     fetch(
-      `https://cloud.dvrpc.org/api/lps/v1/hexbins?station=${stationID}&year=${year}`
+      `https://cloud.dvrpc.org/api/lps/v2/hexbins?station=${stationID}&year=${year}`
     )
       .then(response => {
         if (response.status == 200) {
@@ -420,8 +420,8 @@ const PerformQuery = (stationID, year) => {
           });
 
           map.on("click", "hexBins", e => {
-            if (popupReference[e.features[0].properties.OBJECTID]) {
-              let count = popupReference[e.features[0].properties.OBJECTID];
+            if (popupReference[e.features[0].properties.objectid]) {
+              let count = popupReference[e.features[0].properties.objectid];
               let offsets = {
                 top: [0, 0],
                 "top-left": [0, 0],
@@ -464,8 +464,8 @@ const PerformQuery = (stationID, year) => {
                 type: "line",
                 filter: [
                   "match",
-                  ["get", "GRID_ID"],
-                  e.features[0].properties.GRID_ID,
+                  ["get", "grid_id"],
+                  e.features[0].properties.grid_id,
                   true,
                   false
                 ],
@@ -488,7 +488,7 @@ const PerformQuery = (stationID, year) => {
         // move map extent to station
         let extent = map.querySourceFeatures("railStations", {
           sourceLayer: "railStations-highlight",
-          filter: ["==", ["get", "SURVEY_ID"], stationInfo.id]
+          filter: ["==", ["get", "station_id"], stationInfo.id]
         });
         map.flyTo({
           center: extent[0].geometry.coordinates,
@@ -513,23 +513,23 @@ const StationPopup = event => {
     const LineInfo = props => {
       let line = document.createElement("p"),
         colorScheme =
-          props.OPERATOR == "PATCO"
+          props.operator == "PATCO"
             ? colors
-            : schemes[props.OPERATOR][props.TYPE];
+            : schemes[props.operator][props.type];
       line.classList.add("map__stationPopup-lineInfo");
       line.style.color = colorScheme[colorScheme.length - 2];
-      switch (props.LINE) {
+      switch (props.line) {
         case "null":
-          line.innerText = `${props.OPERATOR} Operated Park and Ride`;
+          line.innerText = `${props.operator} Operated Park and Ride`;
           break;
         case "PATCO":
           line.innerText = "PATCO Speedline";
           break;
         case "SEPTA Main Line":
-          line.innerText = props.LINE;
+          line.innerText = props.line;
           break;
         default:
-          line.innerText = `${props.OPERATOR} ${props.LINE}`;
+          line.innerText = `${props.operator} ${props.line}`;
           break;
       }
       return line;
@@ -547,7 +547,7 @@ const StationPopup = event => {
 
       return container;
     };
-    let colors = props.operator != 'PATCO' ? schemes[props.operator][props.mode] : schemes.DRPA["Rapid Transit"],
+    let colors = props.operator != 'PATCO' ? schemes[props.operator][props.mode] : schemes.PATCO["Rapid Transit"],
       content = document.createElement("div"),
       title = Name(props),
       survey = SurveyInfo(props);
@@ -564,15 +564,15 @@ const StationPopup = event => {
     const Name = data => {
       let title = document.createElement("h2");
       title.classList.add("map__stationPopup-stationInfo");
-      title.innerText = data.STATION;
+      title.innerText = data.station;
       return title;
     };
     const LineInfo = props => {
       let line = document.createElement("p");
       line.classList.add("map__stationPopup-lineInfo");
-      switch (props.LINE) {
+      switch (props.line) {
         case "null":
-          line.innerText = `${props.OPERATOR} Operated Park and Ride`;
+          line.innerText = `${props.operator} Operated Park and Ride`;
           break;
         case "PATCO":
           line.innerText = "PATCO Speedline";
@@ -581,7 +581,7 @@ const StationPopup = event => {
           line.innerText = "SEPTA Main Line";
           break;
         default:
-          line.innerText = `${props.OPERATOR} ${props.LINE}`;
+          line.innerText = `${props.operator} ${props.line}`;
           break;
       }
       return line;
@@ -601,8 +601,8 @@ const StationPopup = event => {
     return content.innerHTML;
   };
   let content;
-  if (data[event.features[0].properties.SURVEY_ID]) {
-    let stationData = data[event.features[0].properties.SURVEY_ID];
+  if (data[event.features[0].properties.station_id]) {
+    let stationData = data[event.features[0].properties.station_id];
     content = SurveyedPopup(stationData, event);
   } else {
     let props = event.features[0].properties;
@@ -656,7 +656,7 @@ form.onsubmit = e => {
 };
 let data = new Object();
 // populate dropdowns with possible query values
-fetch("https://cloud.dvrpc.org/api/lps/v1/stations")
+fetch("https://cloud.dvrpc.org/api/lps/v2/stations")
   .then(response => {
     if (response.status == 200) {
       return response.json();
@@ -670,7 +670,7 @@ fetch("https://cloud.dvrpc.org/api/lps/v1/stations")
       CreateYearOptions(form[1], e.target.value)
       map.setFilter("railStations-highlight", [
         "==",
-        ["get", "SURVEY_ID"],
+        ["get", "station_id"],
         ['to-number', e.target.value]
       ]);
     });
@@ -697,15 +697,15 @@ let stationPopup;
 
 map.on("click", "railStations-base", e => {
   let props = e.features[0].properties;
-  if (props.SURVEY_ID > 0) {
+  if (props.station_id > 0) {
     map.setFilter("railStations-highlight", [
       "==",
-      ["get", "SURVEY_ID"],
-      props.SURVEY_ID
+      ["get", "station_id"],
+      props.station_id
     ]);
     // perform query
-    let station = props.SURVEY_ID,
-      year = data[props.SURVEY_ID].years[0];
+    let station = props.station_id,
+      year = data[props.station_id].years[0];
     PerformQuery(station, year);
 
     // populate form
@@ -715,18 +715,18 @@ map.on("click", "railStations-base", e => {
   }
 });
 map.on("mouseover", "railStations-base", e => {
-  if (e.features[0].properties.SURVEY_ID > 0)
+  if (e.features[0].properties.station_id > 0)
     map.getCanvas().style.cursor = "pointer";
   map.setFilter("railStations-hover", [
     "==",
-    "OBJECTID",
-    e.features[0].properties.OBJECTID
+    "objectid",
+    e.features[0].properties.objectid
   ]);
   stationPopup = StationPopup(e);
 });
 map.on("mouseleave", "railStations-base", e => {
   map.getCanvas().style.cursor = "";
-  map.setFilter("railStations-hover", ["==", "OBJECTID", ""]);
+  map.setFilter("railStations-hover", ["==", "objectid", ""]);
   stationPopup.remove();
 });
 

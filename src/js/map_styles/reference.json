@@ -12,7 +12,7 @@
     "sources": {
         
         "hex-ref": {
-            "url": "https://services1.arcgis.com/LWtWv6q6BJyKidj8/ArcGIS/rest/services/HexBins_StationShed/FeatureServer/0/query?where=1%3D1&outFields=OBJECTID%2C+GRID_ID&outSR=4326&geometryPrecision=4&f=pgeojson",
+            "url": "https://arcgis.dvrpc.org/portal/rest/services/Transportation/parkandride_hexbins/FeatureServer/0/query?where=1=1&outFields=objectid%2C+grid_id&outSR=4326&f=geojson",
             "type": "geojson"
         }
         

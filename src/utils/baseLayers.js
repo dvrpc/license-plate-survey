@@ -54,7 +54,7 @@ export const baseLayers = {
     sourceDef: {
       type: "geojson",
       data:
-        "https://opendata.arcgis.com/datasets/5af7a3e9c0f34a7f93ac8935cb6cae3b_0.geojson"
+        "https://arcgis.dvrpc.org/portal/rest/services/Transportation/PassengerRail/FeatureServer/0/query?where=1%3D1&outFields=*&geometryPrecision=4&outSR=4326&f=geojson"
     },
     layers: {
       base: {
@@ -65,7 +65,7 @@ export const baseLayers = {
           paint: {
             "line-color": [
               "match",
-              ["get", "TYPE"],
+              ["get", "type"],
               "AMTRAK",
               "#004d6e",
               "NJ Transit",
@@ -99,7 +99,7 @@ export const baseLayers = {
           paint: {
             "line-color": [
               "match",
-              ["get", "TYPE"],
+              ["get", "type"],
               "AMTRAK",
               "#004d6e",
               "NJ Transit",
@@ -122,7 +122,7 @@ export const baseLayers = {
             ],
             "line-width": ["interpolate", ["linear"], ["zoom"], 8, 4.5, 12, 9]
           },
-          filter: ['match', ['get', 'LINE_NAME'], '', true, false]
+          filter: ['match', ['get', 'line_name'], '', true, false]
         }
       },
       labels: {
@@ -131,7 +131,7 @@ export const baseLayers = {
         type: "symbol",
         source: "passengerRail",
         layout: {
-          "text-field": "{LINE_NAME}",
+          "text-field": "{line_name}",
           "text-font": ["Montserrat SemiBold", "Open Sans Semibold"],
           "text-size": ["interpolate", ["linear"], ["zoom"], 8, 8, 12, 12],
           "symbol-placement": "line"
@@ -140,7 +140,7 @@ export const baseLayers = {
           "text-color": "#fff",
           "text-halo-color": [
             "match",
-            ["get", "TYPE"],
+            ["get", "type"],
             "AMTRAK",
             "#004d6e",
             "NJ Transit",
@@ -171,7 +171,7 @@ export const baseLayers = {
   railStations: {
     sourceDef: {
       type: 'geojson',
-      data: 'https://services1.arcgis.com/LWtWv6q6BJyKidj8/arcgis/rest/services/DVRPC_LPS/FeatureServer/0/query?where=1%3D1&outFields=*&geometryPrecision=4&outSR=4326&f=pgeojson',
+      data: 'https://arcgis.dvrpc.org/portal/rest/services/Transportation/parkandride_survey_locations/FeatureServer/0/query?where=1%3D1&outFields=*&geometryPrecision=4&outSR=4326&f=geojson',
     },
     layers: {
       base:{
@@ -183,7 +183,7 @@ export const baseLayers = {
             'circle-radius': ['interpolate', ['linear'], ['zoom'], 8, 2, 12, 8],
             'circle-color': [
               'match',
-              ['get', 'SURVEY_ID'],
+              ['get', 'station_id'],
               0, '#aaa',
               'green'
             ],
@@ -198,7 +198,7 @@ export const baseLayers = {
           id: 'railStations-highlight',
           source: 'railStations',
           type: 'circle',
-          filter: ['==', 'SURVEY_ID', ''],
+          filter: ['==', 'station_id', ''],
           paint: {
             'circle-radius': ['interpolate', ['linear'], ['zoom'], 8, 5, 12, 15],
             'circle-stroke-color': '#ff0',
@@ -213,7 +213,7 @@ export const baseLayers = {
           id: 'railStations-hover',
           source: 'railStations',
           type: 'circle',
-          filter: ['==', 'SURVEY_ID', ''],
+          filter: ['==', 'station_id', ''],
           paint: {
             'circle-radius': ['interpolate', ['linear'], ['zoom'], 8, 3, 12, 6],
             'circle-stroke-color': '#f00',
