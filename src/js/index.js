@@ -675,6 +675,17 @@ fetch("https://cloud.dvrpc.org/api/lps/v2/stations")
       ]);
     });
 
+    // request to modify line names for certain stations
+    const modifiedLines = {
+      3: 'Multiple Lines',
+      54: 'Multiple Lines',
+      103: 'Multiple Lines',
+      84: 'PATCO/Atlantic City Line',
+      176: 'Atlantic City Line/River LINE',
+      142: 'Multiple Lines',
+      172: 'PATCO/River LINE'
+    }
+
     // loop through stations and create a dropdown option for each one
     jawn.map(station => {
       if (!data[station.id]) {
@@ -683,7 +694,7 @@ fetch("https://cloud.dvrpc.org/api/lps/v2/stations")
         if (station.line == "Speedline")
           option.label = `${station.name} (PATCO)`;
         else if (station.line != "None")
-          option.label = `${station.name} (${station.line})`;
+          option.label = `${station.name} (${!modifiedLines[station.id] ? station.line : modifiedLines[station.id]})`;
         else option.label = `${station.name} (Park and Ride)`;
         option.innerText = option.label
         form[0].appendChild(option);
