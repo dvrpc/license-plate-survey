@@ -683,7 +683,7 @@ fetch("https://cloud.dvrpc.org/api/lps/v2/stations")
       84: 'PATCO/Atlantic City Line',
       176: 'Atlantic City Line/River LINE',
       142: 'Multiple Lines',
-      172: 'PATCO/River LINE'
+      172: 'PATCO/River LINE',
     }
 
     // loop through stations and create a dropdown option for each one
@@ -691,11 +691,14 @@ fetch("https://cloud.dvrpc.org/api/lps/v2/stations")
       if (!data[station.id]) {
         let option = document.createElement("option");
         option.value = station.id;
-        if (station.line == "Speedline")
+        if (station.line === "Speedline")
           option.label = `${station.name} (PATCO)`;
-        else if (station.line != "None")
+        else if (!station.line.trim().length) 
+          option.label = station.name
+        else if (station.line !== "None")
           option.label = `${station.name} (${!modifiedLines[station.id] ? station.line : modifiedLines[station.id]})`;
-        else option.label = `${station.name} (Park and Ride)`;
+        
+       else option.label = `${station.name} (Park and Ride)`;
         option.innerText = option.label
         form[0].appendChild(option);
         data[station.id] = station;
