@@ -56,7 +56,7 @@ map.on("load", e => {
   CreateDvrpcNavControl(baseExtent, map)
 
   fetch(
-    "https://arcgis.dvrpc.org/portal/rest/services/Transportation/parkandride_hexbins/FeatureServer/0/query?where=1=1&outFields=objectid%2C+grid_id&outSR=4326&f=geojson"
+    "https://arcgis.dvrpc.org/portal/rest/services/transportation/parkandride_hexbins/FeatureServer/0/query?where=1=1&outFields=objectid%2C+grid_id&outSR=4326&f=geojson"
   ).then(response => {
     if (response.ok) {
       response
