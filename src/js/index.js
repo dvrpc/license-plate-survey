@@ -26,7 +26,8 @@ const schemes = {
   },
   "NJ Transit": {
     "Commuter Rail": ["#e2e2e2", "#f18541", "#b02c87", "#045099"],
-    "Light Rail": ["#ffd847", "#9de779", "#2ae6c2", "#00daf5"]
+    "Light Rail": ["#ffd847", "#9de779", "#2ae6c2", "#00daf5"],
+    "Park and Ride": ["#999999", "#777777", "#575757", "#383838"]
   },
   TMACC: {
     "Park and Ride": ["#999999", "#777777", "#575757", "#383838"]
